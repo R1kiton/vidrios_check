@@ -1,0 +1,9 @@
+[project]
+name = "cotizador-ventanas"
+version = "1.0.0"
+description = "Cotizador de ventanas de aluminio (aplicación de escritorio para Windows)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
