@@ -51,17 +51,23 @@ def test_margen_global_suma_porcentajes_sobre_base():
 
 
 def test_sin_perfiles_ni_materiales_da_cero():
-    r = calcular_cotizacion(DatosCotizacion(perfiles=[], vidrio_area=0, herrajes=0))
+    r = calcular_cotizacion(DatosCotizacion(perfiles=[], vidrio_precio_m2=0, herrajes=0))
     assert r.total == 0
     assert r.margen_efectivo_pct == 0
 
 
 def test_describir_materiales():
     datos = DatosCotizacion(perfiles=[Perfil("Jamba", 1, 1), Perfil("Riel", 1, 1)],
-                            vidrio_area=1.8, herrajes=250)
+                            ancho=1.5, alto=1.2, herrajes=250)
     assert describir_materiales(datos) == \
         "Perfiles de aluminio (Jamba, Riel), vidrio (1.8 m²) y herrajes."
 
 
 def test_describir_materiales_vacio():
-    assert describir_materiales(DatosCotizacion(perfiles=[], vidrio_area=0, herrajes=0)) == ""
+    assert describir_materiales(DatosCotizacion(perfiles=[], ancho=0, alto=0, herrajes=0)) == ""
+
+
+def test_area_de_vidrio_es_ancho_por_alto():
+    datos = armar_datos([], ancho=2.0, alto=1.5, vidrio_precio_m2=400)
+    assert datos.vidrio_area == pytest.approx(3.0)
+    assert calcular_cotizacion(datos).subtotal_vidrio == pytest.approx(1200)

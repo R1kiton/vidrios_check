@@ -12,6 +12,7 @@ from ..models import Catalogo, DatosCotizacion, ResultadoCotizacion
 from ..services.catalogo import RepositorioCatalogo
 from ..services.cotizaciones import ServicioCotizaciones
 from ..services.preferencias import RepositorioPreferencias
+from ..services.registro import configurar_registro, log
 from ..services.rutas import carpeta_cotizaciones, ruta_catalogo, ruta_preferencias
 from .dialogo_impresion import DialogoImpresion
 from .dialogo_precios import DialogoPrecios
@@ -93,15 +94,15 @@ class App(ctk.CTk):
     def modificar_precios(self) -> None:
         DialogoPrecios(self, self.catalogo, on_guardar=self._guardar_catalogo)
 
-    def _guardar_catalogo(self, catalogo: Catalogo, renombres: dict[str, str]) -> bool:
-        """Guarda el catálogo en disco y lo aplica a la cotización actual."""
+    def _guardar_catalogo(self, catalogo: Catalogo) -> bool:
+        """Guarda los precios en disco y los aplica a la cotización actual."""
         try:
             self.repo_catalogo.guardar(catalogo)
         except (OSError, ValueError) as err:
             messagebox.showerror("No se pudieron guardar los precios", str(err))
             return False
         self.catalogo = catalogo
-        self.panel_entrada.aplicar_catalogo(catalogo, renombres)
+        self.panel_entrada.aplicar_catalogo(catalogo)
         if self.calcular():
             self.panel_resumen.mostrar_estado("✔ Precios actualizados y guardados.")
         return True
@@ -118,8 +119,20 @@ class App(ctk.CTk):
 
 def run() -> None:
     """Arranca la aplicación con sus dependencias reales."""
+    ruta_log = configurar_registro()
+    log.info("Inicio de la aplicación")
     ctk.set_appearance_mode(TEMAS[TEMA_INICIAL])
     ctk.set_default_color_theme("blue")
     servicio = ServicioCotizaciones(RepositorioPreferencias(ruta_preferencias()),
                                     carpeta_cotizaciones())
-    App(servicio, RepositorioCatalogo(ruta_catalogo())).mainloop()
+    app = App(servicio, RepositorioCatalogo(ruta_catalogo()))
+
+    def error_en_evento(tipo, valor, tb):
+        """Un error dentro de un botón/evento: se registra y se avisa, sin cerrar la app."""
+        log.error("Error en un evento de la interfaz", exc_info=(tipo, valor, tb))
+        messagebox.showerror("Ocurrió un error",
+                             f"{valor}\n\nLa aplicación sigue funcionando. Detalles en:\n{ruta_log}")
+
+    app.report_callback_exception = error_en_evento
+    app.mainloop()
+    log.info("Cierre de la aplicación")

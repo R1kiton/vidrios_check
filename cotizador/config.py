@@ -4,7 +4,7 @@ Constantes y valores por defecto de la aplicación.
 Para cambiar precios o valores iniciales sólo hay que editar este archivo.
 """
 
-APP_TITLE = "Cotizador de Ventanas de Aluminio"
+APP_TITLE = "Cotizador de Alumar Aluminios"
 APP_ID = "CotizadorVentanas"  # nombre de carpeta para la configuración del usuario
 
 # --- Medidas iniciales de la ventana (metros) ---
@@ -31,7 +31,6 @@ PERFILES_DEFAULT: tuple[tuple[str, float, float, float], ...] = (
 )
 
 # --- Vidrio, herrajes y márgenes ---
-VIDRIO_AREA_DEFAULT = 1.8      # m²
 VIDRIO_PRECIO_DEFAULT = 380.0  # $ por m²
 HERRAJES_DEFAULT = 250.0       # $ costo fijo
 MARGEN1_DEFAULT = 30.0         # % ganancia base
@@ -42,7 +41,7 @@ TASA_IVA = 0.16
 PREFIJO_FOLIO = "COT"
 VIGENCIA_DEFAULT = 15  # días
 DESCRIPCION_DEFAULT = "Ventana de aluminio corrediza"
-EMPRESA_NOMBRE_DEFAULT = "Mi Empresa de Aluminio"
+EMPRESA_NOMBRE_DEFAULT = "Alumar Aluminios"
 CONDICIONES_DEFAULT = (
     "Precios expresados en pesos mexicanos (MXN).\n"
     "Esta cotización tiene una vigencia de {vigencia} días a partir de su fecha de emisión.\n"

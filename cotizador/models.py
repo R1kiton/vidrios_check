@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from enum import Enum
 
 from .config import (ALTO_DEFAULT, ANCHO_DEFAULT, DESCRIPCION_DEFAULT, EMPRESA_NOMBRE_DEFAULT, HERRAJES_DEFAULT,
-                     MARGEN1_DEFAULT, MARGEN2_DEFAULT, TASA_IVA, VIDRIO_AREA_DEFAULT,
+                     MARGEN1_DEFAULT, MARGEN2_DEFAULT, TASA_IVA,
                      VIDRIO_PRECIO_DEFAULT, VIGENCIA_DEFAULT)
 
 
@@ -99,14 +99,18 @@ class DatosCotizacion:
     """Datos de entrada para calcular el precio de una ventana."""
 
     perfiles: list[Perfil] = field(default_factory=list)
-    ancho: float = ANCHO_DEFAULT   # medidas de la ventana (m), de donde salen los metros
-    alto: float = ALTO_DEFAULT
-    vidrio_area: float = VIDRIO_AREA_DEFAULT
+    ancho: float = ANCHO_DEFAULT   # medidas de la ventana (m): de aquí salen los metros
+    alto: float = ALTO_DEFAULT     # de aluminio y el área de vidrio
     vidrio_precio_m2: float = VIDRIO_PRECIO_DEFAULT
     herrajes: float = HERRAJES_DEFAULT
     margen1_pct: float = MARGEN1_DEFAULT
     margen2_pct: float = MARGEN2_DEFAULT
     modo_margen: ModoMargen = ModoMargen.ENCADENADO
+
+    @property
+    def vidrio_area(self) -> float:
+        """Área de vidrio en m² = ancho × alto."""
+        return self.ancho * self.alto
 
 
 @dataclass(frozen=True)

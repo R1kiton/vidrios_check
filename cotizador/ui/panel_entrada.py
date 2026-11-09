@@ -51,7 +51,7 @@ class PanelEntrada(ctk.CTkScrollableFrame):
         formulario.grid(row=0, column=0, sticky="n", padx=(0, 10))
         self.e_ancho = self._campo_medida(formulario, 0, "Ancho (m)")
         self.e_alto = self._campo_medida(formulario, 1, "Alto (m)")
-        ctk.CTkLabel(formulario, text="Los metros de aluminio\nse calculan con estas medidas.",
+        ctk.CTkLabel(formulario, text="Con estas medidas se calculan\nel aluminio y el vidrio.",
                      text_color=COLOR_TEXTO_SECUNDARIO, justify="left").grid(
             row=2, column=0, columnspan=2, pady=(10, 0), sticky="w")
 
@@ -86,7 +86,11 @@ class PanelEntrada(ctk.CTkScrollableFrame):
 
     def _crear_vidrio(self, fila: int) -> None:
         sec = self._seccion(fila, "Vidrio")
-        self.e_vidrio_area = sec.agregar_campo("Área (m²)")
+        fila_area = sec.siguiente_fila()
+        ctk.CTkLabel(sec, text="Área (ancho × alto)").grid(
+            row=fila_area, column=0, padx=10, pady=4, sticky="w")
+        self.lbl_vidrio_area = ctk.CTkLabel(sec, text="—", font=fuente(14, negrita=True))
+        self.lbl_vidrio_area.grid(row=fila_area, column=1, padx=10, pady=4, sticky="e")
         self.e_vidrio_precio = sec.agregar_campo("Precio por m² ($)")
 
     def _crear_herrajes(self, fila: int) -> None:
@@ -113,14 +117,18 @@ class PanelEntrada(ctk.CTkScrollableFrame):
         return ancho, alto
 
     def actualizar_perfiles(self) -> None:
-        """Redibuja la ventana y recalcula los metros de cada fila con las medidas actuales."""
+        """Redibuja la ventana y recalcula metros de aluminio y área de vidrio con las medidas."""
         try:
             medidas = self._leer_medidas()
         except ValueError:
             medidas = None
             self.dibujo.limpiar()
+            self.lbl_vidrio_area.configure(text="—")
         else:
-            self.dibujo.dibujar(*medidas)
+            ancho, alto = medidas
+            self.dibujo.dibujar(ancho, alto, perfiles=[f.nombre for f in self.filas])
+            self.lbl_vidrio_area.configure(
+                text=f"{ancho * alto:.2f} m²   ({ancho:.2f} × {alto:.2f})")
 
         for fila in self.filas:
             fila.refrescar(self.catalogo, medidas)
@@ -141,18 +149,11 @@ class PanelEntrada(ctk.CTkScrollableFrame):
         self.filas.remove(fila)
         for i, restante in enumerate(self.filas, start=1):
             restante.colocar(i)
+        self.actualizar_perfiles()  # el dibujo refleja qué perfiles lleva la ventana
 
-    def aplicar_catalogo(self, catalogo: Catalogo, renombres: dict[str, str]) -> None:
-        """
-        Aplica un catálogo nuevo (precios/fórmulas) a las filas actuales.
-        `renombres` mapea nombre anterior -> nombre nuevo; los perfiles eliminados se quitan.
-        Las filas capturadas a mano no se tocan.
-        """
+    def aplicar_catalogo(self, catalogo: Catalogo) -> None:
+        """Aplica los precios nuevos a las filas actuales (las capturadas a mano no cambian)."""
         self.catalogo = catalogo
-        for fila in [f for f in self.filas if isinstance(f, FilaPerfil)]:
-            fila.nombre = renombres.get(fila.nombre, fila.nombre)
-            if not catalogo.buscar(fila.nombre):
-                self._eliminar_fila(fila)
         self.actualizar_perfiles()
 
     # ----- Lectura / escritura de datos -----------------------------------
@@ -173,7 +174,6 @@ class PanelEntrada(ctk.CTkScrollableFrame):
 
         poner_texto(self.e_ancho, f"{datos.ancho:.2f}")
         poner_texto(self.e_alto, f"{datos.alto:.2f}")
-        poner_texto(self.e_vidrio_area, f"{datos.vidrio_area:.2f}")
         poner_texto(self.e_vidrio_precio, f"{datos.vidrio_precio_m2:.2f}")
         poner_texto(self.e_herrajes, f"{datos.herrajes:.2f}")
         poner_texto(self.e_margen1, f"{datos.margen1_pct:.2f}")
@@ -187,7 +187,6 @@ class PanelEntrada(ctk.CTkScrollableFrame):
         return DatosCotizacion(
             perfiles=[f.perfil(self.catalogo, ancho, alto) for f in self.filas],
             ancho=ancho, alto=alto,
-            vidrio_area=parse_numero(self.e_vidrio_area.get(), "Área de vidrio"),
             vidrio_precio_m2=parse_numero(self.e_vidrio_precio.get(), "Precio por m²"),
             herrajes=parse_numero(self.e_herrajes.get(), "Herrajes"),
             margen1_pct=parse_numero(self.e_margen1.get(), "Margen 1"),

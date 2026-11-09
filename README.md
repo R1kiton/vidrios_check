@@ -104,19 +104,26 @@ ui  →  services  →  calculos / formato  →  models  →  config
 |---|---|---|
 | Medidas de la ventana | Ancho y alto en metros (se dibuja la ventana a escala) | 1.50 m × 1.20 m |
 | Perfiles de aluminio | Nada: los metros salen de las medidas y el precio por metro es fijo | Jamba $100, Riel $55, Zoclo $55, Traslape $70, Cerco $70, Mosquitero $30 |
-| Vidrio | Área (m²) y precio por m² | 1.8 m² × $380 |
+| Vidrio | Sólo el precio por m² (el área = ancho × alto se calcula sola) | $380 / m² |
 | Herrajes | Costo total fijo | $250 |
 | Márgenes | Margen 1 (ganancia base) y Margen 2 (gasto/secundario) | 30% y 30% |
 
 - Al escribir el **ancho** y el **alto** se redibuja la ventana y se recalculan los metros
   de cada perfil con su fórmula (ver *Lógica de cálculo*).
+- El dibujo muestra **cada perfil en su lugar y con su color** (leyenda abajo). Al pasar
+  el mouse sobre una pieza o sobre la leyenda se resalta ese perfil:
+  - **Jamba**: marco fijo arriba y a los lados · **Riel**: marco fijo abajo (donde corren las hojas)
+  - **Zoclo**: arriba y abajo de cada hoja · **Cerco**: lado exterior de cada hoja
+  - **Traslape**: lados de las hojas que se enciman al centro · **Mosquitero**: marco de la malla
+  
+  Si quitas un perfil de la cotización (✕), desaparece de la leyenda y se ve en gris.
 - **Precio de cada pieza** = metros × precio fijo por metro.
 - **＋ Agregar perfil** añade una fila **en blanco** para capturar a mano nombre, metros y
   precio por metro de un perfil extra (sólo para esa cotización). **✕** quita cualquier
   fila (p. ej. una ventana sin mosquitero); *Restablecer valores* vuelve a cargar todos.
 - **⚙ Modificar precios** abre una ventana para cambiar de forma **permanente** el
-  catálogo: nombre, precio por metro y fórmula de cada perfil (*× Alto* y *× Ancho*).
-  También permite agregar o eliminar perfiles y *Restaurar de fábrica*.
+  **precio por metro** de cada perfil (sólo el precio: el nombre y la fórmula de metros son
+  fijos). Incluye *Restaurar de fábrica*. Las fórmulas se cambian en `cotizador/config.py`.
 - **Calcular** (o `Enter` / `F5`) actualiza el resumen.
 - **Restablecer valores** vuelve a cargar los valores por defecto.
 - **🖨 Imprimir cotización** genera la cotización formal en PDF (ver abajo).
@@ -145,6 +152,8 @@ cliente, tabla de conceptos, subtotal/IVA/total, **importe con letra**, término
 - Los PDF se guardan en `Documentos\Cotizaciones\` (ej. `COT-0001 - Juan Pérez.pdf`).
 - Las preferencias se guardan en `%APPDATA%\CotizadorVentanas\config.json`.
 - Los precios de perfiles se guardan en `%APPDATA%\CotizadorVentanas\catalogo.json`.
+- Si algo falla, el detalle queda en `%APPDATA%\CotizadorVentanas\errores.log`
+  (el .exe no tiene consola, así que ahí es donde hay que buscar).
 
 ## Lógica de cálculo
 
@@ -163,6 +172,7 @@ Metros de cada perfil según las medidas de la ventana:
 Metros perfil     = (× Alto) · alto + (× Ancho) · ancho
 Precio pieza      = Metros × Precio por metro
 Subtotal Aluminio = Σ precio de cada pieza
+Área de vidrio    = Ancho × Alto
 Subtotal Vidrio   = Área × Precio/m²
 Costo Base        = Aluminio + Vidrio + Herrajes
 ```
@@ -177,7 +187,7 @@ Márgenes ("Forma de aplicar"):
 | Concepto | Monto |
 |---|---|
 | Subtotal aluminio (390 + 82.50 + 165 + 168 + 168 + 117) | $1,090.50 |
-| Subtotal vidrio (1.8 × 380) | $684.00 |
+| Subtotal vidrio (1.50 × 1.20 = 1.80 m² × 380) | $684.00 |
 | Herrajes | $250.00 |
 | **Costo base** | **$2,024.50** |
 | Margen 1 (30%) | $607.35 → Etapa 1 = $2,631.85 |
